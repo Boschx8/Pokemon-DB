@@ -275,18 +275,16 @@ header{
 }
 
 
-
-
 .pokemon-list {
     max-width: 90%;
     padding-top: 7rem;
+    padding-bottom: 7rem;
     display: flex;
     gap: 40px;
     justify-content: center;
     align-items: center;
     margin: auto;
     flex-wrap: wrap;
-    
 }
 
 .pokemon-card {
