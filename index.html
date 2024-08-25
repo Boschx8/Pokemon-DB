@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokepedia</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" type="image/x-icon" href="assets/favicon-32x32.png">
+    <script src="pokedex.js" defer></script>
+  </head>
+  <body>
+      <header>
+          <div class="logo">
+            <a href="index.html"><img src="assets/Logo.svg" alt="Pokeball" height="150"></a>
+          </div>
+      </header>
+      <div class="welcome-text"> 
+        <h1>Welcome trainer!</h1>
+      </div>
+      <div class="search-bar">
+        <input type="text" name="" id="search-bar" placeholder="Search for a Pokemon by name or #">
+      </div>
+      <div class="filters">
+          <div class="type-filter">
+            <a href="">Type</a>
+            <img src="assets/down-chevron-svgrepo-com.svg" alt="" width="16px" class="filter-icon">
+          </div>
+          <div class="gen-filter">
+            <a href="">Generation</a>
+            <img src="assets/down-chevron-svgrepo-com.svg" alt="" width="16px" class="filter-icon">
+          </div>
+      </div>
+      <div class="type-button">
+        <button class="type-btn normal">Normal</button>
+        <button class="type-btn fighting">Fighting</button>
+        <button class="type-btn flying">Flying</button>
+        <button class="type-btn poison">Poison</button>
+        <button class="type-btn ground">Ground</button>
+        <button class="type-btn rock">Rock</button>
+        <button class="type-btn bug">Bug</button>
+        <button class="type-btn ghost">Ghost</button>
+        <button class="type-btn steel">Steel</button>
+        <button class="type-btn fire">Fire</button>
+        <button class="type-btn water">Water</button>
+        <button class="type-btn grass">Grass</button>
+        <button class="type-btn electric">Electric</button>
+        <button class="type-btn psychic">Psychic</button>
+        <button class="type-btn ice">Ice</button>
+        <button class="type-btn dragon">Dragon</button>
+        <button class="type-btn dark">Dark</button>
+        <button class="type-btn fairy">Fairy</button>
+    </div>
+    <div class="gen-button">
+      <button class="gen-btn kanto">Kanto (1)</button>
+      <button class="gen-btn johto">Johto (2)</button>
+      <button class="gen-btn hoenn">Hoenn (3)</button>
+      <button class="gen-btn sinnoh">Sinnoh (4)</button>
+      <button class="gen-btn unova">Unova (5)</button>
+      <button class="gen-btn kalos">Kalos (6)</button>
+      <button class="gen-btn alola">Alola (7)</button>
+      <button class="gen-btn galar">Galar (8)</button>
+    </div>
+    <div class="pokemon-list">
+      <div id="noResultsMessage" style="display: none;">No Pokémon found</div>
+    </div>
+
+  </body>
+</html>
