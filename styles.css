@@ -276,7 +276,7 @@ header{
 
 
 .pokemon-list {
-    max-width: 90%;
+    max-width: 95%;
     padding-top: 7rem;
     padding-bottom: 7rem;
     display: flex;
@@ -377,6 +377,24 @@ header{
     box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
+
+footer{
+    background-color: rgba(0, 0, 0, 0.5);
+    height: 125px;
+}
+
+.copyright{
+    color: white;
+    font-size: 12px;
+    width: 1300px;
+    padding-top: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    text-align: center;
+}
 
 /* Responsive Design */
 @media (max-width: 1150px) {.logo img {height: 100px;}  .filters{padding-top: 2rem;}
