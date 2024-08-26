@@ -65,6 +65,10 @@ function showPokemon(data){
 
     pokemonName = data.name
     pokemonName = pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1)
+    pokemonName = pokemonName.replace('-', ' ');
+
+    let defaultImageSrc = data.sprites.other["official-artwork"].front_default;
+    let hoverImageSrc = data.sprites.other.showdown?.front_default || defaultImageSrc;
 
     const div = document.createElement("div");
     div.classList.add("pokemon-card");
@@ -78,7 +82,10 @@ function showPokemon(data){
           <div class="card-types">
             ${types}
           </div>
-          <img src="${data.sprites.other["official-artwork"].front_default}" alt="${data.name}" id="pokemon-image">
+          <div class="pokemon-image-container">
+            <img src="${defaultImageSrc}" alt="${data.name}" class="pokemon-image default-image">
+            <img src="${hoverImageSrc}" alt="${data.name}" class="pokemon-image hover-image">
+          </div>
           <img src="assets/hero-pokeball-3430739968171e9fe85357e4739be704.png" alt="" height="100px" class="pokeball-image">
     `;
 
@@ -113,7 +120,7 @@ function searchPokemon() {
         let passesFilters = checkFilters(card);
 
         if (searchMatch && passesFilters) {
-            card.style.display = "block";
+            card.style.display = "flex";
             foundMatch = true;
         } else {
             card.style.display = "none";
@@ -123,7 +130,7 @@ function searchPokemon() {
     if(foundMatch) {
         noResultsMessage.style.display = "none";
     } else {
-        noResultsMessage.style.display = "block";
+        noResultsMessage.style.display = "flex";
     }
 }
 
@@ -146,6 +153,7 @@ function getGeneration(id) {
     if (id <= 721) return 'kalos';
     if (id <= 809) return 'alola';
     if (id <= 905) return 'galar';
+    if (id <= 1025) return 'paldea';
     return 'unknown';
 }
 
@@ -199,7 +207,7 @@ function applyFilters() {
     const pokemonCards = document.querySelectorAll('.pokemon-card');
     pokemonCards.forEach(card => {
         if (checkFilters(card)) {
-            card.style.display = 'block';
+            card.style.display = 'flex';
         } else {
             card.style.display = 'none';
         }
@@ -210,14 +218,43 @@ function applyFilters() {
 
 // Function to update the "No Results" message
 function updateNoResultsMessage() {
-    const visibleCards = document.querySelectorAll('.pokemon-card[style="display: block;"]');
+    const visibleCards = document.querySelectorAll('.pokemon-card[style="display: flex;"]');
     const noResultsMessage = document.getElementById('noResultsMessage');
     
     if (visibleCards.length === 0) {
-        noResultsMessage.style.display = 'block';
+        noResultsMessage.style.display = 'flex';
     } else {
         noResultsMessage.style.display = 'none';
     }
+}
+
+
+// Get the button
+let scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+// When the user scrolls down 20px from the top of the document, show the button
+window.onscroll = function() {scrollFunction()};
+
+function scrollFunction() {
+  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+    scrollToTopBtn.style.display = "flex";
+  } else {
+    scrollToTopBtn.style.display = "none";
+  }
+}
+
+// Smooth scroll to the top when the button is clicked
+scrollToTopBtn.onclick = function() {
+  smoothScrollToTop();
+};
+
+function smoothScrollToTop() {
+  const currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
+
+  if (currentScroll > 0) {
+    window.requestAnimationFrame(smoothScrollToTop);
+    window.scrollTo(0, currentScroll - currentScroll / 8);
+  }
 }
 
 
