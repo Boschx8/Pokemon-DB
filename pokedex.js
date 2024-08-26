@@ -1,34 +1,47 @@
+// Constants
+const POKEMON_API_URL = "https://pokeapi.co/api/v2/pokemon/";
+const TOTAL_POKEMON = 1025;
 
-
-document.querySelector('.type-filter').addEventListener('click', (event) =>  {
-    event.preventDefault();
-    document.querySelector('.type-button').classList.toggle('active');
-    document.querySelector('.type-filter').classList.toggle('active');
-});
-
-document.querySelector('.gen-filter').addEventListener('click', (event) =>  {
-    event.preventDefault();
-    document.querySelector('.gen-button').classList.toggle('active');
-    document.querySelector('.gen-filter').classList.toggle('active');
-});
-
-
-
-
-// All pokemos fetched
-
+// DOM Elements
 const pokemonList = document.querySelector(".pokemon-list");
-const URL = "https://pokeapi.co/api/v2/pokemon/";
-const totalPokemon = 1025;
+const searchInput = document.getElementById("search-bar");
+const noResultsMessage = document.getElementById("noResultsMessage");
+const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+const typeFilterButton = document.querySelector('.type-filter');
+const genFilterButton = document.querySelector('.gen-filter');
 
+// State
+let currentTypeFilters = [];
+let currentGenFilters = [];
 
+// Event Listeners
+document.addEventListener('DOMContentLoaded', initializeApp);
+searchInput.addEventListener('input', handleSearch);
+scrollToTopBtn.onclick = smoothScrollToTop;
+window.onscroll = handleScroll;
+
+typeFilterButton.addEventListener('click', (event) => toggleFilter(event, '.type-button'));
+genFilterButton.addEventListener('click', (event) => toggleFilter(event, '.gen-button'));
+
+document.querySelectorAll('.type-button button').forEach(button => {
+    button.addEventListener('click', () => toggleTypeFilter(button));
+});
+
+document.querySelectorAll('.gen-button button').forEach(button => {
+    button.addEventListener('click', () => toggleGenFilter(button));
+});
+
+// Functions
+function initializeApp() {
+    fetchAllPokemon();
+}
 
 function fetchAllPokemon() {
     let pokemonPromises = [];
 
-    for (let i = 1; i <= totalPokemon; i++) {
+    for (let i = 1; i <= TOTAL_POKEMON; i++) {
         pokemonPromises.push(
-            fetch(URL + i)
+            fetch(POKEMON_API_URL + i)
                 .then(response => response.json())
                 .catch(error => {
                     console.error(`Failed to fetch Pokémon #${i}:`, error);
@@ -46,103 +59,50 @@ function fetchAllPokemon() {
         .catch(error => console.error("Error in processing Pokémon data", error));
 }
 
-
-
-
-function showPokemon(data){
-
-    let types = data.types.map(type => 
+function showPokemon(data) {
+    const types = data.types.map(type => 
         `<a class="${type.type.name}">${type.type.name}</a>`
-    );
-    types = types.join('')
+    ).join('');
     
-    let pokeId = data.id.toString();
-    if(pokeId.length === 1){
-        pokeId = "00" + pokeId;
-    } else if (pokeId.length === 2) {
-        pokeId = "0" + pokeId;
-    }
+    const pokeId = formatPokemonId(data.id);
+    const pokemonName = formatPokemonName(data.name);
+    const defaultImageSrc = data.sprites.other["official-artwork"].front_default;
+    const hoverImageSrc = data.sprites.other.showdown?.front_default || defaultImageSrc;
 
-    pokemonName = data.name
-    pokemonName = pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1)
-    pokemonName = pokemonName.replace('-', ' ');
+    const pokemonCard = createPokemonCard(pokeId, pokemonName, types, defaultImageSrc, hoverImageSrc, data);
+    pokemonList.append(pokemonCard);
+}
 
-    let defaultImageSrc = data.sprites.other["official-artwork"].front_default;
-    let hoverImageSrc = data.sprites.other.showdown?.front_default || defaultImageSrc;
+function formatPokemonId(id) {
+    return id.toString().padStart(3, '0');
+}
 
+function formatPokemonName(name) {
+    return name.charAt(0).toUpperCase() + name.slice(1).replace('-', ' ');
+}
+
+function createPokemonCard(pokeId, pokemonName, types, defaultImageSrc, hoverImageSrc, data) {
     const div = document.createElement("div");
     div.classList.add("pokemon-card");
-    div.setAttribute('data-type', data.types[0].type.name);
+    div.setAttribute('data-primary-type', data.types[0].type.name);
+    div.setAttribute('data-type', data.types.map(type => type.type.name).join(','));
     div.setAttribute('data-gen', getGeneration(data.id));
     div.innerHTML = `
-          <div class="card-info">
+        <div class="card-info">
             <p class="pokemon-id">#${pokeId}</p>
             <p class="pokemon-name">${pokemonName}</p>
-          </div>
-          <div class="card-types">
+        </div>
+        <div class="card-types">
             ${types}
-          </div>
-          <div class="pokemon-image-container">
+        </div>
+        <div class="pokemon-image-container">
             <img src="${defaultImageSrc}" alt="${data.name}" class="pokemon-image default-image">
             <img src="${hoverImageSrc}" alt="${data.name}" class="pokemon-image hover-image">
-          </div>
-          <img src="assets/hero-pokeball-3430739968171e9fe85357e4739be704.png" alt="" height="100px" class="pokeball-image">
+        </div>
+        <img src="assets/hero-pokeball-3430739968171e9fe85357e4739be704.png" alt="" height="100px" class="pokeball-image">
     `;
-
-    pokemonList.append(div)
+    return div;
 }
-
-fetchAllPokemon()
-
-
-
-// Search bar functionality
-const searchInput = document.getElementById("search-bar");
-const noResultsMessage = document.getElementById("noResultsMessage");
-
-function searchPokemon() {
-    let searchText = searchInput.value.toLowerCase().trim();
-    let searchNumber = parseInt(searchText);
-
-    let pokemonCards = document.querySelectorAll(".pokemon-card");
-    let foundMatch = false;
-
-    pokemonCards.forEach(card => {
-        let pokeName = card.querySelector(".pokemon-name").textContent.toLowerCase();
-        let pokeId = card.querySelector(".pokemon-id").textContent.replace('#', '');
-        let pokeIdNumber = parseInt(pokeId);
-
-        let nameMatch = pokeName.includes(searchText);
-        let idMatch = !isNaN(searchNumber) && pokeIdNumber === searchNumber && searchNumber >= 1 && searchNumber <= totalPokemon;
-        let searchMatch = nameMatch || idMatch;
-
-       
-        let passesFilters = checkFilters(card);
-
-        if (searchMatch && passesFilters) {
-            card.style.display = "flex";
-            foundMatch = true;
-        } else {
-            card.style.display = "none";
-        }
-    });
-
-    if(foundMatch) {
-        noResultsMessage.style.display = "none";
-    } else {
-        noResultsMessage.style.display = "flex";
-    }
-}
-
-searchInput.addEventListener('input', () => {
-    searchPokemon();
-    updateNoResultsMessage();
-});
-
-
-let currentTypeFilters = [];
-let currentGenFilters = [];
-
 
 function getGeneration(id) {
     if (id <= 151) return 'kanto';
@@ -157,38 +117,61 @@ function getGeneration(id) {
     return 'unknown';
 }
 
+function handleSearch() {
+    const searchText = searchInput.value.toLowerCase().trim();
+    const searchNumber = parseInt(searchText);
+    let foundMatch = false;
 
-document.querySelectorAll('.type-button button').forEach(button => {
-    button.addEventListener('click', () => {
-        const type = button.textContent.toLowerCase();
-        if (currentTypeFilters.includes(type)) {
-            currentTypeFilters = currentTypeFilters.filter(t => t !== type);
-            button.classList.remove('active');
+    document.querySelectorAll(".pokemon-card").forEach(card => {
+        const pokeName = card.querySelector(".pokemon-name").textContent.toLowerCase();
+        const pokeId = card.querySelector(".pokemon-id").textContent.replace('#', '');
+        const pokeIdNumber = parseInt(pokeId);
+
+        const nameMatch = pokeName.includes(searchText);
+        const idMatch = !isNaN(searchNumber) && pokeIdNumber === searchNumber && searchNumber >= 1 && searchNumber <= TOTAL_POKEMON;
+        const searchMatch = nameMatch || idMatch;
+        const passesFilters = checkFilters(card);
+
+        if (searchMatch && passesFilters) {
+            card.style.display = "flex";
+            foundMatch = true;
         } else {
-            currentTypeFilters.push(type);
-            button.classList.add('active');
+            card.style.display = "none";
         }
-        applyFilters();
     });
-});
 
+    updateNoResultsMessage(foundMatch);
+}
 
+function toggleFilter(event, buttonSelector) {
+    event.preventDefault();
+    document.querySelector(buttonSelector).classList.toggle('active');
+    event.currentTarget.classList.toggle('active');
+}
 
-// Modify the event listeners for generation buttons
-document.querySelectorAll('.gen-button button').forEach(button => {
-    button.addEventListener('click', () => {
-        const gen = button.textContent.split(' ')[0].toLowerCase();
-        if (currentGenFilters.includes(gen)) {
-            currentGenFilters = currentGenFilters.filter(g => g !== gen);
-            button.classList.remove('active');
-        } else {
-            currentGenFilters.push(gen);
-            button.classList.add('active');
-        }
-        applyFilters();
-    });
-});
+function toggleTypeFilter(button) {
+    const type = button.textContent.toLowerCase();
+    if (currentTypeFilters.includes(type)) {
+        currentTypeFilters = currentTypeFilters.filter(t => t !== type);
+        button.classList.remove('active');
+    } else {
+        currentTypeFilters.push(type);
+        button.classList.add('active');
+    }
+    applyFilters();
+}
 
+function toggleGenFilter(button) {
+    const gen = button.textContent.split(' ')[0].toLowerCase();
+    if (currentGenFilters.includes(gen)) {
+        currentGenFilters = currentGenFilters.filter(g => g !== gen);
+        button.classList.remove('active');
+    } else {
+        currentGenFilters.push(gen);
+        button.classList.add('active');
+    }
+    applyFilters();
+}
 
 function checkFilters(card) {
     const cardTypes = card.getAttribute('data-type').split(',');
@@ -202,59 +185,35 @@ function checkFilters(card) {
     return typeMatch && genMatch;
 }
 
-// Function to apply filters
 function applyFilters() {
-    const pokemonCards = document.querySelectorAll('.pokemon-card');
-    pokemonCards.forEach(card => {
+    let foundMatch = false;
+    document.querySelectorAll('.pokemon-card').forEach(card => {
         if (checkFilters(card)) {
             card.style.display = 'flex';
+            foundMatch = true;
         } else {
             card.style.display = 'none';
         }
     });
-
-    updateNoResultsMessage();
+    updateNoResultsMessage(foundMatch);
 }
 
-// Function to update the "No Results" message
-function updateNoResultsMessage() {
-    const visibleCards = document.querySelectorAll('.pokemon-card[style="display: flex;"]');
-    const noResultsMessage = document.getElementById('noResultsMessage');
-    
-    if (visibleCards.length === 0) {
-        noResultsMessage.style.display = 'flex';
-    } else {
-        noResultsMessage.style.display = 'none';
-    }
+function updateNoResultsMessage(foundMatch) {
+    noResultsMessage.style.display = foundMatch ? 'none' : 'flex';
 }
 
-
-// Get the button
-let scrollToTopBtn = document.getElementById("scrollToTopBtn");
-
-// When the user scrolls down 20px from the top of the document, show the button
-window.onscroll = function() {scrollFunction()};
-
-function scrollFunction() {
-  if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
-    scrollToTopBtn.style.display = "flex";
-  } else {
-    scrollToTopBtn.style.display = "none";
-  }
+function handleScroll() {
+    scrollToTopBtn.style.display = 
+        (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) 
+        ? "flex" 
+        : "none";
 }
-
-// Smooth scroll to the top when the button is clicked
-scrollToTopBtn.onclick = function() {
-  smoothScrollToTop();
-};
 
 function smoothScrollToTop() {
-  const currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
+    const currentScroll = document.documentElement.scrollTop || document.body.scrollTop;
 
-  if (currentScroll > 0) {
-    window.requestAnimationFrame(smoothScrollToTop);
-    window.scrollTo(0, currentScroll - currentScroll / 8);
-  }
+    if (currentScroll > 0) {
+        window.requestAnimationFrame(smoothScrollToTop);
+        window.scrollTo(0, currentScroll - currentScroll / 8);
+    }
 }
-
-
