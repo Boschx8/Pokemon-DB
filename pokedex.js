@@ -31,6 +31,15 @@ document.querySelectorAll('.gen-button button').forEach(button => {
     button.addEventListener('click', () => toggleGenFilter(button));
 });
 
+// Add resize event listener
+window.addEventListener('resize', () => {
+    document.querySelectorAll('.pokemon-card').forEach(card => {
+        const imageContainer = card.querySelector('.pokemon-image-container');
+        const pokemonId = parseInt(card.querySelector('.pokemon-id').textContent.replace('#', ''));
+        updateImageSource(imageContainer, pokemonId);
+    });
+});
+
 // Functions
 function initializeApp() {
     fetchAllPokemon();
@@ -59,6 +68,10 @@ function fetchAllPokemon() {
         .catch(error => console.error("Error in processing Pokémon data", error));
 }
 
+function isMobile() {
+    return window.innerWidth <= 768; // You can adjust this breakpoint as needed
+}
+
 function showPokemon(data) {
     const types = data.types.map(type => 
         `<a class="${type.type.name}">${type.type.name}</a>`
@@ -67,27 +80,25 @@ function showPokemon(data) {
     const pokeId = formatPokemonId(data.id);
     const pokemonName = formatPokemonName(data.name);
     const defaultImageSrc = data.sprites.other["official-artwork"].front_default;
-    const hoverImageSrc = data.sprites.other.showdown?.front_default || defaultImageSrc;
+    const showdownImageSrc = data.sprites.other.showdown?.front_default;
 
-    const pokemonCard = createPokemonCard(pokeId, pokemonName, types, defaultImageSrc, hoverImageSrc, data);
-    pokemonList.append(pokemonCard);
-}
+    let displayImageSrc, hoverImageSrc;
+    if (isMobile()) {
+        // For mobile, prefer showdown sprite, fall back to default if not available
+        displayImageSrc = showdownImageSrc || defaultImageSrc;
+        hoverImageSrc = displayImageSrc; // No hover effect on mobile
+    } else {
+        // For desktop, use official artwork as default and showdown as hover
+        displayImageSrc = defaultImageSrc;
+        hoverImageSrc = showdownImageSrc || defaultImageSrc;
+    }
 
-function formatPokemonId(id) {
-    return id.toString().padStart(3, '0');
-}
-
-function formatPokemonName(name) {
-    return name.charAt(0).toUpperCase() + name.slice(1).replace('-', ' ');
-}
-
-function createPokemonCard(pokeId, pokemonName, types, defaultImageSrc, hoverImageSrc, data) {
-    const div = document.createElement("div");
-    div.classList.add("pokemon-card");
-    div.setAttribute('data-primary-type', data.types[0].type.name);
-    div.setAttribute('data-type', data.types.map(type => type.type.name).join(','));
-    div.setAttribute('data-gen', getGeneration(data.id));
-    div.innerHTML = `
+    const pokemonCard = document.createElement("div");
+    pokemonCard.classList.add("pokemon-card");
+    pokemonCard.setAttribute('data-primary-type', data.types[0].type.name);
+    pokemonCard.setAttribute('data-type', data.types.map(type => type.type.name).join(','));
+    pokemonCard.setAttribute('data-gen', getGeneration(data.id));
+    pokemonCard.innerHTML = `
         <div class="card-info">
             <p class="pokemon-id">#${pokeId}</p>
             <p class="pokemon-name">${pokemonName}</p>
@@ -96,12 +107,40 @@ function createPokemonCard(pokeId, pokemonName, types, defaultImageSrc, hoverIma
             ${types}
         </div>
         <div class="pokemon-image-container">
-            <img src="${defaultImageSrc}" alt="${data.name}" class="pokemon-image default-image">
+            <img src="${displayImageSrc}" alt="${data.name}" class="pokemon-image default-image">
             <img src="${hoverImageSrc}" alt="${data.name}" class="pokemon-image hover-image">
         </div>
         <img src="assets/hero-pokeball-3430739968171e9fe85357e4739be704.png" alt="" height="100px" class="pokeball-image">
     `;
-    return div;
+    pokemonList.append(pokemonCard);
+}
+
+function updateImageSource(imageContainer, pokemonId) {
+    fetch(`${POKEMON_API_URL}${pokemonId}`)
+        .then(response => response.json())
+        .then(data => {
+            const defaultImageSrc = data.sprites.other["official-artwork"].front_default;
+            const showdownImageSrc = data.sprites.other.showdown?.front_default;
+            const defaultImage = imageContainer.querySelector('.default-image');
+            const hoverImage = imageContainer.querySelector('.hover-image');
+
+            if (isMobile()) {
+                defaultImage.src = showdownImageSrc || defaultImageSrc;
+                hoverImage.src = defaultImage.src;
+            } else {
+                defaultImage.src = defaultImageSrc;
+                hoverImage.src = showdownImageSrc || defaultImageSrc;
+            }
+        })
+        .catch(error => console.error(`Error updating image for Pokémon #${pokemonId}:`, error));
+}
+
+function formatPokemonId(id) {
+    return id.toString().padStart(3, '0');
+}
+
+function formatPokemonName(name) {
+    return name.charAt(0).toUpperCase() + name.slice(1).replace('-', ' ');
 }
 
 function getGeneration(id) {
@@ -145,7 +184,16 @@ function handleSearch() {
 
 function toggleFilter(event, buttonSelector) {
     event.preventDefault();
-    document.querySelector(buttonSelector).classList.toggle('active');
+    const button = document.querySelector(buttonSelector);
+    const allButtons = document.querySelectorAll('.type-button, .gen-button');
+    
+    allButtons.forEach(btn => {
+        if (btn !== button) {
+            btn.classList.remove('active');
+        }
+    });
+    
+    button.classList.toggle('active');
     event.currentTarget.classList.toggle('active');
 }
 

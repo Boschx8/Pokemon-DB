@@ -151,11 +151,12 @@ header {
 
 .type-button,
 .gen-button {
-    display: none;
+    visibility: hidden;
 }
 
 .type-button.active,
 .gen-button.active {
+    visibility: visible;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -414,35 +415,15 @@ footer {
 
 @media (max-width: 768px) {
     .logo img { height: 80px; }
-    .tools a { font-size: 16px; }
     #search-bar {
         width: 60%;
         font-size: 16px;
     }
     .type-button button { font-size: 12px!important; }
+    .type-button,
+    .gen-button { width: 85%; }
 
-    .pokemon-list {
-        gap: 20px;
-    }
-    .pokemon-card {
-        width: calc(50% - 20px);
-        height: 150px;
-        padding: 10px;
-    }
-    .pokemon-name {
-        font-size: 18px;
-    }
-    .pokemon-id {
-        font-size: 12px;
-    }
-    .pokemon-image-container {
-        width: 80px;
-        height: 80px;
-    }
-    .pokeball-image {
-        width: 80px;
-        height: 80px;
-    }
+   
 }
 
 @media (max-width: 480px) {
