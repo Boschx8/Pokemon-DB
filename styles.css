@@ -214,6 +214,11 @@ header {
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    
 }
 
 .pokemon-card:hover {
@@ -478,11 +483,13 @@ footer {
 
     .pokemon-list{
         width: 90%;
+        gap: 20px;
     }
     .pokemon-card {
         width: calc(45% - 10px);
         height: 120px;
         padding: 8px;
+       
     }
     .pokemon-name {
         font-size: 14px;
